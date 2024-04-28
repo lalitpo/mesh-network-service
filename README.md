@@ -48,8 +48,8 @@ Below functionalities are implemented in the project:
 2. Create and delete nodes
 3. Establish connections between two nodes and see the distance between them
 4. See the list of all existing node connections. The list must be sortable by:
-   a. any link node (alphabetically)
-   b. distance
+   - a. any link node (alphabetically)
+   - b. distance
 5. Know the optimal route between node origin and node destination
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -105,8 +105,8 @@ Below is an example of how you can set up the project on your local machine.
    For easier installation, run 'mesh-network-infra/mesh-network-db.sql' file in your PostgreSQL database.
 
    It already has the required tables and data for the application to run (you can create more.)
-5.
-6. Run the application by running file : ManAppApplication.java located at
+
+5. Run the application by running file : ManAppApplication.java located at
    lets-text-app/src/main/java/com/rivada/meshnetworkapp/MeshNetworkAppApplication.java
 
     1. The application will be running on port 8080. You can access the application using the following URL:
