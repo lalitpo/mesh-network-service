@@ -1,8 +1,9 @@
 package com.rivada.meshnetworkapp.controllers;
 
-import com.rivada.meshnetworkapp.entities.Node;
+import com.rivada.meshnetworkapp.requests.CityInfo;
 import com.rivada.meshnetworkapp.services.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,18 +16,30 @@ public class ManageNodesController {
     private NodeService nodeService;
 
     @GetMapping("/getAllNodes")
-    public List<Node> getAllNodes() {
-        return nodeService.getAllNodes();
+    public ResponseEntity<List<String>> getAllNodes() {
+        return ResponseEntity.ok().body(nodeService.getAllNodes());
     }
 
     @PostMapping("/createNode")
-    public void createNode(@RequestBody Node node) {
-        nodeService.createNode(node);
+    public ResponseEntity<String> createNode(@RequestBody CityInfo cityDetails) {
+        try {
+            nodeService.createNode(cityDetails);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Node could not be created: " + e.getMessage());
+        }
+        return ResponseEntity.ok().body("Node created successfully");
+
+
     }
 
     @DeleteMapping("/deleteNode")
-    public void deleteNode(@RequestParam String nodeId) {
-        nodeService.deleteNode(nodeId);
+    public ResponseEntity<String> deleteNode(@RequestParam Long nodeId) {
+        try {
+            nodeService.deleteNode(nodeId);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Node could not be deleted: " + e.getMessage());
+        }
+        return ResponseEntity.ok().body("Node deleted successfully.");
     }
 }
 
