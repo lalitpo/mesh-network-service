@@ -38,6 +38,9 @@
 
 This application aims to send information within a mesh network from Node ‘Origin’ to
 Node ‘Destination’ in an efficient way.
+Each Node has a unique identifier and a name (usually represented by city name) and its longitude and latitude as
+coordinates.
+A Node can have connections to other Nodes for which distance is calculated.
 
 Below functionalities are implemented in the project:
 
