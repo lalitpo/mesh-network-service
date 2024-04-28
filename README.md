@@ -151,7 +151,7 @@ Below is an example of how you can set up the project on your local machine.
         POST http://localhost:8080/nodes/createNode
         {
             "cityName": "New York",
-            "coordinates": [-74.0060,40.7128]
+            "coordinates": [-74.0060,40.7128]   //[longitude, latitude]
         }
 
         2. See the list of all existing nodes
