@@ -180,7 +180,7 @@ public class ConnectionService {
     /**
      * Calculates the distance between two nodes based using the Haversine formula.
      *
-     * @param sourceNode The source node.
+     * @param sourceNode      The source node.
      * @param destinationNode The destination node.
      * @return The distance between the two nodes in kilometers.
      */

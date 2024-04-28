@@ -48,8 +48,8 @@ public class ManageConnectionsController {
     /**
      * Retrieves the optimal route between two nodes.
      *
-     * @param  sourceNodeId      the ID of the source node
-     * @param  destinationNodeId the ID of the destination node
+     * @param sourceNodeId      the ID of the source node
+     * @param destinationNodeId the ID of the destination node
      * @return a ResponseEntity containing the optimal route between the nodes, or an error message if the route could not be retrieved
      */
     @GetMapping("getOptimalRoute")

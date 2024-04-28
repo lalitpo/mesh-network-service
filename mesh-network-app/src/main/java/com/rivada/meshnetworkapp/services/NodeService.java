@@ -25,14 +25,12 @@ import java.util.Optional;
 @Service
 public class NodeService {
 
+    private static final Logger logger = LogManager.getLogger();
+    private final GeometryFactory geoFactory = new GeometryFactory(new PrecisionModel(), 4326);
     @Autowired
     private NodeRepository nodeRepository;
-
     @Autowired
     private ConnectionRepository connectionRepository;
-    private static final Logger logger = LogManager.getLogger();
-
-    private final GeometryFactory geoFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     public List<String> getAllNodes() {
         Iterable<Node> iterableNodes = nodeRepository.findAll();
