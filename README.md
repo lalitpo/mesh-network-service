@@ -147,6 +147,10 @@ Below is an example of how you can set up the project on your local machine.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+### Improvements:
+
+1. For a scalable solution, we can think of non-SQL databases like MongoDB, Dynamo DB, Cassandra, etc. as horizontal
+   scaling is easier in them.
 ### Developer :
 
 [Lalit Poddar](mailto:lalit.poddar@gmail.com)  

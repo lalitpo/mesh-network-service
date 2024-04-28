@@ -2,13 +2,13 @@ package com.rivada.meshnetworkapp.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import org.locationtech.jts.geom.Point;
 
 import java.io.Serializable;
 
 @Getter
-@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "nodes")
 public class Node implements Serializable {
@@ -20,4 +20,9 @@ public class Node implements Serializable {
     private String name;
     @Column(name = "coordinates")
     private Point coordinates;
+
+    public Node(String name, Point coordinates) {
+        this.name = name;
+        this.coordinates = coordinates;
+    }
 }

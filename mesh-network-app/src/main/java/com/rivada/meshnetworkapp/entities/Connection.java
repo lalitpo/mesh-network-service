@@ -2,10 +2,10 @@ package com.rivada.meshnetworkapp.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "connections")
 public class Connection {
@@ -20,5 +20,11 @@ public class Connection {
     @JoinColumn(name = "destination")
     private Node destination;
     private Double distance;
+
+    public Connection(Node source, Node destination, Double distance) {
+        this.source = source;
+        this.destination = destination;
+        this.distance = distance;
+    }
 
 }

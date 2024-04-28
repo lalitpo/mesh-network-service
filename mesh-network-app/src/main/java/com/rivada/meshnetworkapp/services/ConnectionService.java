@@ -60,7 +60,7 @@ public class ConnectionService {
         }
     }
 
-    private Route getShortestRoute(Node srcNode, Node destNode) {
+    public Route getShortestRoute(Node srcNode, Node destNode) {
 
         Map<Node, Double> distances = new HashMap<>();
         Map<Node, Node> predecessors = new HashMap<>();
@@ -118,10 +118,7 @@ public class ConnectionService {
 
             double distance = calculateDistance(sourceNode, destinationNode);
 
-            Connection connection = new Connection();
-            connection.setSource(sourceNode);
-            connection.setDestination(destinationNode);
-            connection.setDistance(distance);
+            Connection connection = new Connection(sourceNode, destinationNode, distance);
 
             connectionRepository.save(connection);
 
@@ -146,7 +143,7 @@ public class ConnectionService {
         }
     }
 
-    private double calculateDistance(Node sourceNode, Node destinationNode) {
+    public double calculateDistance(Node sourceNode, Node destinationNode) {
 
         Point sourcePoint = sourceNode.getCoordinates();
         Point destPoint = destinationNode.getCoordinates();

@@ -15,6 +15,7 @@ import org.springframework.util.Assert;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,9 +25,10 @@ public class NodeService {
     @Autowired
     private NodeRepository nodeRepository;
 
-    private final GeometryFactory geoFactory = new GeometryFactory(new PrecisionModel(), 4326);
     @Autowired
     private ConnectionRepository connectionRepository;
+
+    private final GeometryFactory geoFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
     public List<String> getAllNodes() {
         Iterable<Node> iterableNodes = nodeRepository.findAll();
@@ -34,7 +36,7 @@ public class NodeService {
         for (Node node : iterableNodes) {
             allNodes.add(node.getName());
         }
-        return allNodes;
+        return Collections.unmodifiableList(allNodes);
     }
 
     public void createNode(CityInfo city) {
@@ -53,10 +55,7 @@ public class NodeService {
         if (existingNode.isPresent()) {
             throw new IllegalArgumentException("Node for this location already exists.");
         } else {
-            Node node = new Node();
-            node.setName(city.getCityName());
-            node.setCoordinates(cityPoint);
-            nodeRepository.save(node);
+            nodeRepository.save(new Node(city.getCityName(), cityPoint));
         }
     }
 
