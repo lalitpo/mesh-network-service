@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ConnectionService {
@@ -20,25 +21,28 @@ public class ConnectionService {
     @Autowired
     private ConnectionRepository connectionRepository;
 
-
+    /**
+     * Retrieves the connections for a given node and sorts them based on the specified criteria.
+     *
+     * @param nodeId the ID of the node for which to retrieve connections
+     * @param sort   the sorting option for the connections ('D' for distance, any other character to sort by node/city name)
+     * @return a map containing the connections sorted by either distance or node/city name
+     * @throws IllegalArgumentException if the specified node is not found
+     */
     public Map<String, Double> getConnections(Long nodeId, char sort) {
-        Optional<Node> nodeInfo = nodeRepository.findById(nodeId);
-        if (nodeInfo.isPresent()) {
-            Node node = nodeInfo.get();
-            List<Connection> connectionsInfo = connectionRepository.findBySourceOrDestination(node.getId(), node.getId());
-            Map<String, Double> connectionsMap = new LinkedHashMap<>();
-            for (Connection connection : connectionsInfo) {
-                String nodeName = connection.getSource().equals(node) ? connection.getDestination().getName() : connection.getSource().getName();
-                connectionsMap.put(nodeName, connection.getDistance());
-            }
-            if (sort == 'D') {
-                return getConnectionsSortedByDistance(connectionsMap);
-            } else {
-                return getConnectionsSortedByNode(connectionsMap);
-            }
-        } else {
-            throw new IllegalArgumentException("Node not found.");
-        }
+        Node node = nodeRepository.findById(nodeId)
+                .orElseThrow(() -> new IllegalArgumentException("Node not found."));
+
+        List<Connection> connectionsInfo = connectionRepository.findBySourceOrDestination(node.getId(), node.getId());
+        Map<String, Double> connectionsMap = connectionsInfo.stream()
+                .collect(Collectors.toMap(
+                        connection -> connection.getSource().equals(node) ? connection.getDestination().getName() : connection.getSource().getName(),
+                        Connection::getDistance,
+                        (v1, v2) -> v1,
+                        LinkedHashMap::new
+                ));
+
+        return sort == 'D' ? getConnectionsSortedByDistance(connectionsMap) : getConnectionsSortedByNode(connectionsMap);
     }
 
     public Route getOptimalRoute(Long sourceNodeId, Long destinationNodeId) {
@@ -47,13 +51,16 @@ public class ConnectionService {
         Optional<Node> destNode = nodeRepository.findById(destinationNodeId);
 
         if (srcNode.isPresent() && destNode.isPresent()) {
+            // Check if a direct connection is present
             Optional<Connection> conn1 = connectionRepository.findBySourceAndDestination(srcNode.get().getId(), destNode.get().getId());
+            // Direct connection is present
             if (conn1.isPresent()) {
                 return new Route(List.of(srcNode.get().getName(),
                         destNode.get().getName()),
                         conn1.get().getDistance());
             } else {
-                return getShortestRoute(srcNode.get(), destNode.get());// Find the shortest indirect path using Dijkstra's algorithm
+                // Find the shortest indirect path using Dijkstra's algorithm
+                return getShortestRoute(srcNode.get(), destNode.get());
             }
         } else {
             throw new IllegalArgumentException("Source or destination node not found.");
@@ -61,23 +68,41 @@ public class ConnectionService {
     }
 
     public Route getShortestRoute(Node srcNode, Node destNode) {
-
         Map<Node, Double> distances = new HashMap<>();
         Map<Node, Node> predecessors = new HashMap<>();
-        PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingDouble(a -> distances.getOrDefault(a, Double.MAX_VALUE)));
 
+        // Priority queue to store the nodes in the order of their distances from the source node
+        PriorityQueue<Node> queue = new PriorityQueue<>((a, b) -> {
+            double distanceA = distances.getOrDefault(a, Double.MAX_VALUE);
+            double distanceB = distances.getOrDefault(b, Double.MAX_VALUE);
+            return Double.compare(distanceA, distanceB);
+        });
+
+        // Set the distance of the source node to 0 and add it to the priority queue
         distances.put(srcNode, 0.0);
         queue.offer(srcNode);
 
+        Set<Node> visited = new HashSet<>();                                // Set to store the visited nodes
+
+        // Perform Dijkstra's algorithm to find the shortest path
         while (!queue.isEmpty()) {
             Node currentNode = queue.poll();
+
+            // If the current node is the destination node, we have found the shortest path
             if (currentNode.equals(destNode)) {
                 break;
             }
 
+            // Get the connections from the current node to its neighbors
             List<Connection> connections = connectionRepository.findBySourceOrDestination(currentNode.getId(), currentNode.getId());
             for (Connection connection : connections) {
                 Node neighbor = connection.getSource().equals(currentNode) ? connection.getDestination() : connection.getSource();
+                // If the neighbor has already been visited, skip it
+                if (visited.contains(neighbor)) {
+                    continue;
+                }
+
+                // Calculate the distance from the source node to the neighbor through the current node
                 double distance = distances.getOrDefault(currentNode, Double.MAX_VALUE) + connection.getDistance();
                 if (distance < distances.getOrDefault(neighbor, Double.MAX_VALUE)) {
                     distances.put(neighbor, distance);
@@ -85,8 +110,11 @@ public class ConnectionService {
                     queue.offer(neighbor);
                 }
             }
+            // Mark the current node as visited
+            visited.add(currentNode);
         }
 
+        // If a path from the source node to the destination node exists, construct the shortest route
         if (predecessors.containsKey(destNode)) {
             List<String> path = new ArrayList<>();
             Node current = destNode;
@@ -99,33 +127,39 @@ public class ConnectionService {
         } else {
             throw new IllegalArgumentException("No indirect connection found between the given nodes.");
         }
-
     }
 
+    /**
+     * Establishes a connection between two nodes.
+     *
+     * @param srcId  The ID of the source node.
+     * @param destId The ID of the destination node.
+     * @return The distance of the connection.
+     * @throws IllegalArgumentException If the source and destination nodes are the same, or if either the source or
+     *                                  destination node is not found, or if the connection limit is exceeded for either the source or destination node,
+     *                                  or if the connection already exists between the source and destination nodes.
+     */
     public Double establishConnection(Long srcId, Long destId) {
+
+        // Check if source and destination nodes are the same
         if (Objects.equals(srcId, destId)) {
             throw new IllegalArgumentException("Source and destination nodes cannot be the same.");
         }
-        Optional<Node> srcNode = nodeRepository.findById(srcId);
-        Optional<Node> destNode = nodeRepository.findById(destId);
+        Node sourceNode = nodeRepository.findById(srcId)
+                .orElseThrow(() -> new IllegalArgumentException("Source node not found."));
+        Node destinationNode = nodeRepository.findById(destId)
+                .orElseThrow(() -> new IllegalArgumentException("Destination node not found."));
 
-        if (srcNode.isPresent() && destNode.isPresent()) {
-            Node sourceNode = srcNode.get();
-            Node destinationNode = destNode.get();
+        // Check if the connection limit is exceeded for either the source or destination node
+        checkConnectionLimit(srcId, destId);
+        // Check if the connection already exists between the source and destination nodes
+        checkExistingConnection(srcId, destId);
 
-            checkConnectionLimit(srcId, destId);
-            checkExistingConnection(srcId, destId);
+        double distance = calculateDistance(sourceNode, destinationNode);
 
-            double distance = calculateDistance(sourceNode, destinationNode);
-
-            Connection connection = new Connection(sourceNode, destinationNode, distance);
-
-            connectionRepository.save(connection);
-
-            return distance;
-        } else {
-            throw new IllegalArgumentException("Source or destination node not found.");
-        }
+        Connection connection = new Connection(sourceNode, destinationNode, distance);
+        connectionRepository.save(connection);
+        return distance;
     }
 
     private void checkExistingConnection(Long srcId, Long destId) {
@@ -143,6 +177,13 @@ public class ConnectionService {
         }
     }
 
+    /**
+     * Calculates the distance between two nodes based using the Haversine formula.
+     *
+     * @param sourceNode The source node.
+     * @param destinationNode The destination node.
+     * @return The distance between the two nodes in kilometers.
+     */
     public double calculateDistance(Node sourceNode, Node destinationNode) {
 
         Point sourcePoint = sourceNode.getCoordinates();

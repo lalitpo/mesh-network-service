@@ -13,6 +13,13 @@ public class ManageConnectionsController {
     @Autowired
     private ConnectionService connectionService;
 
+    /**
+     * Establishes a connection between two nodes.
+     *
+     * @param sourceNodeId      the ID of the source node
+     * @param destinationNodeId the ID of the destination node
+     * @return a ResponseEntity containing the distance of the direct connection (between nodes), or an error message if the connection could not be established
+     */
     @PostMapping("setConnection")
     public ResponseEntity<Object> establishConnection(@RequestParam("sourceNodeId") Long sourceNodeId, @RequestParam("destinationNodeId") Long destinationNodeId) {
         try {
@@ -22,6 +29,13 @@ public class ManageConnectionsController {
         }
     }
 
+    /**
+     * Retrieves the connections for a given node.
+     *
+     * @param nodeId the ID of the node for which to retrieve connections
+     * @param sort   the sorting option for the connections (optional, default is 'N' to sort by city name)
+     * @return a ResponseEntity containing the list of each connection input node has, or an error message if the connections could not be retrieved
+     */
     @GetMapping("getConnections")
     public ResponseEntity<Object> getConnections(@RequestParam Long nodeId, @RequestParam(value = "sort", required = false, defaultValue = "N") char sort) {
         try {
@@ -31,6 +45,13 @@ public class ManageConnectionsController {
         }
     }
 
+    /**
+     * Retrieves the optimal route between two nodes.
+     *
+     * @param  sourceNodeId      the ID of the source node
+     * @param  destinationNodeId the ID of the destination node
+     * @return a ResponseEntity containing the optimal route between the nodes, or an error message if the route could not be retrieved
+     */
     @GetMapping("getOptimalRoute")
     public ResponseEntity<Object> getOptimalRoute(@RequestParam("sourceNodeId") Long sourceNodeId, @RequestParam("destinationNodeId") Long destinationNodeId) {
         try {
